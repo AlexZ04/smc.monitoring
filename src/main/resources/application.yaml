@@ -2,6 +2,10 @@ spring:
   application:
     name: smc.monitoring
 
+server:
+  port: 8024
+  forward-headers-strategy: framework
+
 api-config:
   key: ${API_CONFIG_KEY:test-api-key}
 
@@ -11,3 +15,12 @@ vk:
     token: ${VK_BOT_TOKEN:}
   monitoring:
     peer-id: ${VK_MONITORING_PEER_ID:}
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    config-url: /smc-monitoring/v3/api-docs/swagger-config
+    url: /smc-monitoring/v3/api-docs
