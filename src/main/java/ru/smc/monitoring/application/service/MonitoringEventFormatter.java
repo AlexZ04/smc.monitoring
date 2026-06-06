@@ -1,5 +1,6 @@
 package ru.smc.monitoring.application.service;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import ru.smc.monitoring.application.common.model.request.MonitoringEventRequest;
@@ -9,9 +10,12 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 
 @Service
+@RequiredArgsConstructor
 public class MonitoringEventFormatter {
 
     private static final String UNKNOWN_USER = "не указан";
+
+    private final TriggeredUserMacroResolver triggeredUserMacroResolver;
 
     public String format(MonitoringEventRequest request) {
         return """
@@ -33,12 +37,15 @@ public class MonitoringEventFormatter {
             return UNKNOWN_USER;
         }
 
-        String name = StringUtils.hasText(triggeredBy.name()) ? triggeredBy.name().trim() : UNKNOWN_USER;
-        if (!StringUtils.hasText(triggeredBy.link())) {
+        String name = triggeredUserMacroResolver.resolveName(triggeredBy.name());
+        name = StringUtils.hasText(name) ? name.trim() : UNKNOWN_USER;
+
+        String link = triggeredUserMacroResolver.resolveLink(triggeredBy.link());
+        if (!StringUtils.hasText(link)) {
             return name;
         }
 
-        return "%s (%s)".formatted(name, triggeredBy.link().trim());
+        return "%s (%s)".formatted(name, link.trim());
     }
 
     private String formatTime(String time) {
