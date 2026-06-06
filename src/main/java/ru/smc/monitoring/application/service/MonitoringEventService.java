@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import ru.smc.monitoring.application.common.exception.UnauthorizedException;
 import ru.smc.monitoring.application.common.model.request.MonitoringEventRequest;
-import ru.smc.monitoring.application.common.model.response.VkDiagnosticsResponse;
 import ru.smc.monitoring.application.service.vk.VkNotificationClient;
 
 @Service
@@ -23,12 +22,6 @@ public class MonitoringEventService {
 
         String message = monitoringEventFormatter.format(request);
         vkNotificationClient.sendMessage(message);
-    }
-
-    public VkDiagnosticsResponse getVkDiagnostics(String apiKey) {
-        validateApiKey(apiKey);
-
-        return vkNotificationClient.getDiagnostics();
     }
 
     private void validateApiKey(String apiKey) {

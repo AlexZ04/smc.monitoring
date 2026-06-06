@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.smc.monitoring.application.common.model.request.MonitoringEventRequest;
 import ru.smc.monitoring.application.common.model.response.MonitoringEventResponse;
-import ru.smc.monitoring.application.common.model.response.VkDiagnosticsResponse;
 import ru.smc.monitoring.application.service.MonitoringEventService;
 
 @RestController
@@ -27,10 +26,5 @@ public class MonitoringEventController {
         monitoringEventService.processEvent(request, apiKey);
 
         return new MonitoringEventResponse("sent");
-    }
-
-    @PostMapping("/vk/diagnostics")
-    public VkDiagnosticsResponse getVkDiagnostics(@RequestHeader("api-key") String apiKey) {
-        return monitoringEventService.getVkDiagnostics(apiKey);
     }
 }
