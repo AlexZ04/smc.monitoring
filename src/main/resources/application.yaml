@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: smc.monitoring
+
+api-config:
+  key: ${API_CONFIG_KEY:test-api-key}
+
+vk:
+  group-id: ${VK_GROUP_ID:0}
+  bot:
+    token: ${VK_BOT_TOKEN:}
+  monitoring:
+    peer-id: ${VK_MONITORING_PEER_ID:}
