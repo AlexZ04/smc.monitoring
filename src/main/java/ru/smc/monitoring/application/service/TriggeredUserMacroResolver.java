@@ -12,8 +12,8 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 public class TriggeredUserMacroResolver {
 
-    private static final Pattern GET_NAME_PATTERN = Pattern.compile("\\{getName\\(\\*(\\d+)\\*?\\)\\}");
-    private static final Pattern GET_LINK_PATTERN = Pattern.compile("\\{getLink\\(\\*(\\d+)\\*?\\)\\}");
+    private static final Pattern GET_NAME_PATTERN = Pattern.compile("\\{getName\\(\\*?(\\d+)\\*?\\)\\}");
+    private static final Pattern GET_LINK_PATTERN = Pattern.compile("\\{getLink\\(\\*?(\\d+)\\*?\\)\\}");
 
     private final VkUserClient vkUserClient;
 
