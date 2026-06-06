@@ -1,0 +1,76 @@
+filebeat.inputs:
+  - type: filestream
+    id: smc-docker-containers
+    enabled: true
+    paths:
+      - /var/lib/docker/containers/*/*.log
+    parsers:
+      - container: ~
+    fields:
+      project: smc
+      log_source: docker
+    fields_under_root: true
+
+  - type: journald
+    id: smc-telegram-admin-adapter
+    paths:
+      - /var/log/journal
+      - /run/log/journal
+    include_matches.match:
+      - _SYSTEMD_UNIT=smc-telegram-admin-adapter.service
+    fields:
+      project: smc
+      service.name: smc-telegram-admin-adapter
+      log_source: journald
+    fields_under_root: true
+
+  - type: journald
+    id: smc-vk-user-adapter
+    paths:
+      - /var/log/journal
+      - /run/log/journal
+    include_matches.match:
+      - _SYSTEMD_UNIT=smc-vk-user-adapter.service
+    fields:
+      project: smc
+      service.name: smc-vk-user-adapter
+      log_source: journald
+    fields_under_root: true
+
+  - type: journald
+    id: smc-vk-admin-adapter
+    paths:
+      - /var/log/journal
+      - /run/log/journal
+    include_matches.match:
+      - _SYSTEMD_UNIT=smc-vk-admin-adapter.service
+    fields:
+      project: smc
+      service.name: smc-vk-admin-adapter
+      log_source: journald
+    fields_under_root: true
+
+processors:
+  - add_host_metadata: ~
+  - add_docker_metadata:
+      host: "unix:///var/run/docker.sock"
+  - decode_json_fields:
+      fields: ["message"]
+      target: "json"
+      overwrite_keys: false
+      add_error_key: true
+      when:
+        regexp:
+          message: "^\\s*\\{"
+
+setup.ilm.enabled: true
+setup.kibana:
+  host: "http://kibana:5601"
+
+output.elasticsearch:
+  hosts: ["http://elasticsearch:9200"]
+  username: "${ELASTICSEARCH_USERNAME}"
+  password: "${ELASTICSEARCH_PASSWORD}"
+
+logging.level: info
+

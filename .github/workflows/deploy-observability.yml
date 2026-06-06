@@ -1,0 +1,75 @@
+name: Deploy Observability
+
+on:
+  workflow_dispatch:
+    inputs:
+      start_stack:
+        description: Run docker compose up -d after uploading files
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup SSH key
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts
+
+      - name: Upload observability files
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          tar -C deploy -czf - observability | ssh "$VPS_USER@$VPS_HOST" '
+            set -euo pipefail
+            mkdir -p /home/deploy/smk-monitoring/deploy
+            tar -C /home/deploy/smk-monitoring/deploy -xzf -
+          '
+
+      - name: Start observability stack
+        if: ${{ inputs.start_stack }}
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          ssh "$VPS_USER@$VPS_HOST" <<'EOF'
+            set -euo pipefail
+
+            OBS_DIR=/home/deploy/smk-monitoring/deploy/observability
+            cd "$OBS_DIR"
+
+            if [ ! -f .env ]; then
+              cp .env.example .env
+              echo "Created $OBS_DIR/.env. Edit passwords and rerun this workflow."
+              exit 1
+            fi
+
+            if grep -Eq '^(ELASTIC_PASSWORD|KIBANA_PASSWORD)=change' .env; then
+              echo "Replace placeholder passwords in $OBS_DIR/.env before starting the stack."
+              exit 1
+            fi
+
+            if [ "$(sysctl -n vm.max_map_count)" -lt 1048576 ]; then
+              echo "vm.max_map_count must be at least 1048576. Run:"
+              echo "echo vm.max_map_count=1048576 | sudo tee /etc/sysctl.d/99-elasticsearch.conf"
+              echo "sudo sysctl --system"
+              exit 1
+            fi
+
+            docker compose up -d
+          EOF
+
