@@ -104,7 +104,7 @@ public class MonitoringEventFormatter {
             return "%s (%s)".formatted(text, link.trim());
         }
 
-        return "[%s | %s]".formatted(target, text);
+        return "[%s|%s]".formatted(target, text);
     }
 
     private String normalizeVkLinkTarget(String link) {
