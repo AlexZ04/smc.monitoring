@@ -25,6 +25,10 @@ public class TriggeredUserMacroResolver {
         return resolve(value, GET_LINK_PATTERN, false);
     }
 
+    public String resolveMacros(String value) {
+        return resolveLink(resolveName(value));
+    }
+
     private String resolve(String value, Pattern pattern, boolean name) {
         if (value == null) {
             return null;

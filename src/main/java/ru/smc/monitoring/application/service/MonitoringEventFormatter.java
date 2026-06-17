@@ -19,15 +19,28 @@ public class MonitoringEventFormatter {
 
     public String format(MonitoringEventRequest request) {
         return """
-                Новое событие с уровнем %s в канале %s!
-                Пользователь, стриггеревший событие: %s.
-                Сообщение: %s
-                Время: %s
+                %s Новое событие мониторинга
+
+                Уровень:
+                  %s
+
+                Канал:
+                  %s
+
+                Пользователь:
+                  %s
+
+                Сообщение:
+                %s
+
+                Время:
+                  %s
                 """.formatted(
-                request.level(),
+                resolveLevelEmoji(request.level()),
+                formatLevel(request.level()),
                 request.channel(),
                 formatTriggeredBy(request.triggeredBy()),
-                request.message(),
+                indent(triggeredUserMacroResolver.resolveMacros(request.message())),
                 formatTime(request.time())
         ).stripTrailing();
     }
@@ -54,5 +67,36 @@ public class MonitoringEventFormatter {
         }
 
         return DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(OffsetDateTime.now());
+    }
+
+    private String resolveLevelEmoji(String level) {
+        if (!StringUtils.hasText(level)) {
+            return "⚪";
+        }
+
+        return switch (level.trim().toUpperCase()) {
+            case "TRACE", "DEBUG" -> "🔵";
+            case "INFO" -> "🟢";
+            case "WARN", "WARNING" -> "🟡";
+            case "ERROR" -> "🔴";
+            case "CRITICAL", "FATAL" -> "🚨";
+            default -> "⚪";
+        };
+    }
+
+    private String formatLevel(String level) {
+        if (!StringUtils.hasText(level)) {
+            return "UNKNOWN";
+        }
+
+        return "%s %s".formatted(resolveLevelEmoji(level), level.trim().toUpperCase());
+    }
+
+    private String indent(String value) {
+        if (!StringUtils.hasText(value)) {
+            return "  не указано";
+        }
+
+        return "  " + value.trim().replace("\n", "\n  ");
     }
 }
