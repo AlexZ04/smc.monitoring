@@ -8,36 +8,34 @@ import ru.smc.monitoring.application.common.model.request.TriggeredUser;
 
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
 public class MonitoringEventFormatter {
 
     private static final String UNKNOWN_USER = "не указан";
+    private static final Pattern VK_LINK_PATTERN = Pattern.compile("^(?:https?://)?(?:m\\.)?vk\\.com/([^/?#]+).*$");
 
     private final TriggeredUserMacroResolver triggeredUserMacroResolver;
 
     public String format(MonitoringEventRequest request) {
         return """
-                %s Новое событие мониторинга
+                %s Новое событие с уровнем %s %s
 
-                Уровень:
-                  %s
+                Канал:  %s
 
-                Канал:
-                  %s
-
-                Пользователь:
-                  %s
-
+                Пользователь: %s
+                
                 Сообщение:
                 %s
 
-                Время:
-                  %s
+                Время: %s
                 """.formatted(
                 resolveLevelEmoji(request.level()),
                 formatLevel(request.level()),
+                resolveLevelEmoji(request.level()),
                 request.channel(),
                 formatTriggeredBy(request.triggeredBy()),
                 indent(triggeredUserMacroResolver.resolveMacros(request.message())),
@@ -58,7 +56,7 @@ public class MonitoringEventFormatter {
             return name;
         }
 
-        return "%s (%s)".formatted(name, link.trim());
+        return formatVkLink(link, name);
     }
 
     private String formatTime(String time) {
@@ -89,7 +87,7 @@ public class MonitoringEventFormatter {
             return "UNKNOWN";
         }
 
-        return "%s %s".formatted(resolveLevelEmoji(level), level.trim().toUpperCase());
+        return level.trim().toUpperCase();
     }
 
     private String indent(String value) {
@@ -98,5 +96,28 @@ public class MonitoringEventFormatter {
         }
 
         return "  " + value.trim().replace("\n", "\n  ");
+    }
+
+    private String formatVkLink(String link, String text) {
+        String target = normalizeVkLinkTarget(link);
+        if (!StringUtils.hasText(target)) {
+            return "%s (%s)".formatted(text, link.trim());
+        }
+
+        return "[%s | %s]".formatted(target, text);
+    }
+
+    private String normalizeVkLinkTarget(String link) {
+        String trimmedLink = link.trim();
+        Matcher matcher = VK_LINK_PATTERN.matcher(trimmedLink);
+        if (matcher.matches()) {
+            return "https://vk.com/%s".formatted(matcher.group(1));
+        }
+
+        if (trimmedLink.matches("[A-Za-z0-9_.]+")) {
+            return "https://vk.com/%s".formatted(trimmedLink);
+        }
+
+        return null;
     }
 }
