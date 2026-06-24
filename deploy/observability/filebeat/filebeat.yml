@@ -80,6 +80,19 @@ processors:
       when:
         regexp:
           message: "^\\s*\\{"
+  - include_fields:
+      fields:
+        - "@timestamp"
+        - "message"
+        - "log.level"
+        - "log_source"
+        - "project"
+        - "container.name"
+        - "container.image.name"
+        - "service.name"
+        - "stream"
+        - "input.type"
+        - "json"
 
 setup.ilm.enabled: true
 setup.kibana:
