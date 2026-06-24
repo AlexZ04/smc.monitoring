@@ -54,6 +54,10 @@ processors:
   - add_host_metadata: ~
   - add_docker_metadata:
       host: "unix:///var/run/docker.sock"
+  - drop_event:
+      when:
+        equals:
+          container.name: "smc-filebeat"
   - decode_json_fields:
       fields: ["message"]
       target: "json"
@@ -73,4 +77,3 @@ output.elasticsearch:
   password: "${ELASTICSEARCH_PASSWORD}"
 
 logging.level: info
-
