@@ -56,17 +56,22 @@ processors:
       host: "unix:///var/run/docker.sock"
   - drop_event:
       when:
-        and:
+        or:
+          - regexp:
+              container.image.name: "^docker\\.elastic\\.co/(elasticsearch|kibana|beats)/"
           - equals:
-              log_source: docker
-          - not:
-              or:
-                - equals:
-                    container.name: "smk-api"
-                - equals:
-                    container.name: "smk-monitoring"
-                - equals:
-                    container.name: "smc-rabbitmq"
+              container.labels.com_docker_compose_project: "observability"
+          - and:
+              - equals:
+                  log_source: docker
+              - not:
+                  or:
+                    - equals:
+                        container.name: "smk-api"
+                    - equals:
+                        container.name: "smk-monitoring"
+                    - equals:
+                        container.name: "smc-rabbitmq"
   - decode_json_fields:
       fields: ["message"]
       target: "json"
