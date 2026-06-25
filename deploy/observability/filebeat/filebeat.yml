@@ -15,7 +15,6 @@ filebeat.inputs:
     id: smc-telegram-admin-adapter
     paths:
       - /var/log/journal
-      - /run/log/journal
     include_matches.match:
       - _SYSTEMD_UNIT=smc-telegram-admin-adapter.service
     fields:
@@ -28,7 +27,6 @@ filebeat.inputs:
     id: smc-vk-user-adapter
     paths:
       - /var/log/journal
-      - /run/log/journal
     include_matches.match:
       - _SYSTEMD_UNIT=smc-vk-user-adapter.service
     fields:
@@ -41,7 +39,6 @@ filebeat.inputs:
     id: smc-vk-admin-adapter
     paths:
       - /var/log/journal
-      - /run/log/journal
     include_matches.match:
       - _SYSTEMD_UNIT=smc-vk-admin-adapter.service
     fields:
@@ -61,23 +58,6 @@ processors:
               container.image.name: "^docker\\.elastic\\.co/(elasticsearch|kibana|beats)/"
           - equals:
               container.labels.com_docker_compose_project: "observability"
-          - and:
-              - equals:
-                  log_source: docker
-              - not:
-                  or:
-                    - equals:
-                        container.name: "smk-api"
-                    - regexp:
-                        container.image.name: "^ghcr\\.io/alexz04/smk-api:"
-                    - equals:
-                        container.name: "smk-monitoring"
-                    - regexp:
-                        container.image.name: "^ghcr\\.io/alexz04/smk-monitoring:"
-                    - equals:
-                        container.name: "smc-rabbitmq"
-                    - regexp:
-                        container.image.name: "^rabbitmq:"
   - decode_json_fields:
       fields: ["message"]
       target: "json"
