@@ -68,10 +68,16 @@ processors:
                   or:
                     - equals:
                         container.name: "smk-api"
+                    - regexp:
+                        container.image.name: "^ghcr\\.io/alexz04/smk-api:"
                     - equals:
                         container.name: "smk-monitoring"
+                    - regexp:
+                        container.image.name: "^ghcr\\.io/alexz04/smk-monitoring:"
                     - equals:
                         container.name: "smc-rabbitmq"
+                    - regexp:
+                        container.image.name: "^rabbitmq:"
   - decode_json_fields:
       fields: ["message"]
       target: "json"
